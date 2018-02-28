@@ -1,5 +1,6 @@
 package com.mrmodise;
 
+import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.SparkSession;
 
@@ -25,12 +26,12 @@ public class WordCount {
 
         // count the number of A's in the file
         long numAs = logData
-                .filter(s -> s.contains("a"))
+                .filter((FilterFunction<String>) s -> s.contains("a"))
                 .count();
 
         // count the number of B's in the file
         long numBs = logData
-                .filter(s -> s.contains("b"))
+                .filter((FilterFunction<String>) s -> s.contains("b"))
                 .count();
 
         // print results to console
