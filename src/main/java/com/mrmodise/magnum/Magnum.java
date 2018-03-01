@@ -37,7 +37,7 @@ public class Magnum {
         results.registerTempTable("magnum");
 
 
-        spark.sql("select * from magnum").show();
+        spark.sql("select _c2 from magnum").show(100,false);
 
 //        dr.stream().forEach(System.out::print);
     }
