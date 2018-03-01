@@ -1,16 +1,13 @@
 package com.mrmodise.magnum;
 
-import com.google.common.base.Splitter;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Magnum {
 
@@ -37,8 +34,42 @@ public class Magnum {
         results.registerTempTable("magnum");
 
 
-        spark.sql("select _c2 from magnum").show(100,false);
+//        spark.sql("select _c2 from magnum").show(100,false);
 
 //        dr.stream().forEach(System.out::print);
+
+
+        // XML PROCESSING
+
+        Dataset<Row> r = spark.read()
+                .option("header", "false")
+                .csv("src/main/resources/xmlformat.xml");
+
+
+
+//        r.show();
+
+        Dataset<Row> xmlData = spark.read()
+                .format("com.databricks.spark.xml")
+                .option("rootTag","magnumlog")
+                .option("rowTag","section")
+                .load("src/main/resources/xmlformat.xml");
+
+       // xmlData.show();
+
+        Dataset<Row> policies = spark.read()
+                .format("com.databricks.spark.xml")
+                .option("rootTag","policy")
+                .option("rowTag","definition")
+                .load("src/main/resources/xmlformat.xml");
+
+        policies.show();
+
+
+        policies.registerTempTable("");
+
+
+
+
     }
 }
