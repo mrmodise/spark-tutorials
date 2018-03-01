@@ -1,11 +1,12 @@
 package com.mrmodise.datasets;
 
+import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 public class SparkDataSets {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws AnalysisException {
         /**
          * Create a Spark session
          * provides builtin support for Hive features including the ability to write queries using HiveQL
@@ -37,6 +38,11 @@ public class SparkDataSets {
 
         // Count people by age
         df.groupBy("age").count().show();
+
+        // Registering data set as a global temporary view
+        df.createGlobalTempView("people");
+
+        spark.sql("select * from global_temp.people").show();
 
     }
 }
