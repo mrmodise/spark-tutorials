@@ -36,12 +36,12 @@ public class Life {
      * @param wholeFiles full text files in one of the 2 possible formats
      * @return RDD of Life
      */
-    public void apply(JavaPairRDD<String, String> wholeFiles){
+    public static void apply(JavaPairRDD<String, String> wholeFiles){
 
         // Delete row and line number and SUBSTITUTE character
-        JavaRDD<String> cleaned = wholeFiles.map(x -> (x._1.replaceAll(CLEAN, "")));
+//        JavaRDD<String> cleaned = wholeFiles..map(x -> (x._1, x._2.replaceAll(CLEAN, "")))
 
-        System.out.println(cleaned.first());
+//        System.out.println(cleaned.first());
         // Now extract the two formats out of every file (one file might contain two formats
 
         // Apply correct format
