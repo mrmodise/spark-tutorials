@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 public class Magnum_From_Scala {
 
-    private static final String CLEAN = "^[0-9]{15},[0-9]{15},";
+        private static final String CLEAN = "^[0-9]{15},[0-9]{15},";
 
     public static void main(String[] args) {
         SparkConf conf = new SparkConf()
@@ -26,15 +26,19 @@ public class Magnum_From_Scala {
         JavaPairRDD<String, String> magnumPairRDD = magnumRDD
                 .mapToPair(extractLog());
 
-        JavaPairRDD<Tuple2<String, String>, Long> rdd = magnumPairRDD.zipWithIndex();
+//        JavaPairRDD<Tuple2<String, String>, Long> rdd = magnumPairRDD.zipWithIndex();
 
-        JavaPairRDD<Tuple2<String, String>, Long> rddNoNulls = rdd.filter(keyValue -> !keyValue._1().equals(" ") && !keyValue._2().equals(" "));
+        JavaPairRDD<String, String> jrp = magnumPairRDD
+                .filter(keyValue -> !keyValue._1().equals(""));
 
-        rddNoNulls.coalesce(1).saveAsTextFile("src/main/resources/magnum-pair-rdd");
+
+//        JavaPairRDD<Tuple2<String, String>, Long> rddNoNulls = rdd.filter(keyValue -> !keyValue._1().equals(""));
+
+        jrp.coalesce(1).saveAsTextFile("src/main/resources/magnum-pair-rdd");
     }
 
     private static PairFunction<String, String, String> extractLog() {
-        return line -> new Tuple2<>(line.replaceAll(CLEAN,""),"");
+        return line -> new Tuple2<>(line.replaceAll(CLEAN,""), "");
     }
 
     private static PairFunction<String, String, String> removeComma() {
