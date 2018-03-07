@@ -32,19 +32,19 @@ public class SimpleMagnum {
 
         JavaRDD<String> rddList = sc.parallelize(strings);
 
-        JavaPairRDD<String, String> javaPairRDD = rddList.mapToPair(getLifeAndPolicy());
+        JavaPairRDD<String, String> javaPairRDD = rddList.mapToPair(getPolicies());
 
         javaPairRDD.foreach(data -> System.out.println("Key ==> " + data._1() + " Value ==> " + data._2()));
     }
 
 
-    private static PairFunction<String, String, String> getLifeAndPolicy() {
+    private static PairFunction<String, String, String> getPolicies() {
         return (String s) -> {
 
-            /* StringBuilder cleanSentencesKey = new StringBuilder();
-            StringBuilder cleanSentencesValue = new StringBuilder();
+             StringBuilder csk = new StringBuilder();
+            StringBuilder csv = new StringBuilder();
 
-            String sentences = s
+            String sent = s
                     .replaceAll("null", "") // we don't need nulls
                     .replaceAll(";;", "") // we only need a single occurence not double
                     .replaceAll("(\\d+)\\:(\\d+)", "00"); // we do not need this for now
@@ -55,15 +55,16 @@ public class SimpleMagnum {
                     .omitEmptyStrings()
                     .trimResults()
                     .withKeyValueSeparator("#")
-                    .split(sentences);
+                    .split(sent);
 
             map.forEach((key,value) -> {
-                cleanSentencesKey.append(key + " " + value);
-//                cleanSentencesValue.append(value + " ");
+                csk.append(key + " " + value);
+//                csv.append(value + " ");
+//                System.out.println(key + " " + value);
             });
 
-//            System.out.println(cleanSentencesKey.toString());*/
-            return new Tuple2<>("", "");
+//            System.out.println(csk.toString());
+            return new Tuple2<>(csk.toString(), "");
         };
     }
 }

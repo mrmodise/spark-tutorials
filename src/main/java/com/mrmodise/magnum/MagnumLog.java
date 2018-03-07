@@ -34,59 +34,43 @@ public class MagnumLog {
                 .as(Encoders.STRING())
                 .collectAsList();
 
-        // Preparing
+        // Extract records from the magnum tags
         StringBuilder magnumLog = new StringBuilder();
         Pattern p = Pattern.compile("<MAGNUM.LOG>(.+?)</MAGNUM.LOG>");
-
         dr.forEach(str -> magnumLog.append(str + ";"));
-
         Matcher m = p.matcher(magnumLog.toString());
         // Count any matches to the regex above
         int finalCount = countMatches(p, magnumLog.toString());
         int count = 0;
+        // Add up all found matches to the list
         List<String> list = new ArrayList<>();
-
-        // Add up all matches to the list
         while (true) {
             if (!(m.find() && (count <= finalCount))) break;
             list.add(count, m.group(1));
             count++;
         }
-
-//        list.stream().forEach(System.out::println);
-
-        // Create spark contents from Spark session. Needed to convert list to JavaPairRDD
+        // Create spark context from Spark session. Needed to convert list to JavaPairRDD
         JavaSparkContext sc = new JavaSparkContext(spark.sparkContext());
-
-        // Convert list into JavaRDD
+        // Convert list to JavaRDD
         JavaRDD<String> fromListRDD = sc.parallelize(list);
-
+        // Extract key-value pairs from the data
         JavaPairRDD<String, String> pairedFromRDD = fromListRDD
-                .mapToPair(getProcessData());
+                .mapToPair(getProcessedData());
 
-        pairedFromRDD.foreach(data -> System.out.println(data._1() + " " + data._2()));
+        pairedFromRDD.foreach(data -> {
+            int total = 0;
+            total = total + extractLifeCount(data._1());
+            System.out.println("TOTAL " + total);
+            System.out.println(data._1() + " " + data._2());
+        });
     }
 
     /**
      *
      * @return
      */
-    private static PairFunction<String, String, String> getProcessData() {
+    private static PairFunction<String, String, String> getProcessedData() {
         return (PairFunction<String, String, String>) MagnumLog::extractInformation;
-    }
-
-    /**
-     * Counts the number of pattern matches on a particular string
-     * @param pattern
-     * @param str
-     * @return
-     */
-    static int countMatches(Pattern pattern, String str) {
-        int matches = 0;
-        Matcher matcher = pattern.matcher(str);
-        while (matcher.find())
-            matches++;
-        return matches;
     }
 
     /**
@@ -96,7 +80,6 @@ public class MagnumLog {
      */
     private static Tuple2<String, String> extractInformation(String s) {
 
-        System.out.println(">>>><<<<<" + s);
         StringBuilder cleanSentencesKey = new StringBuilder();
         StringBuilder cleanSentencesValue = new StringBuilder();
 
@@ -115,8 +98,31 @@ public class MagnumLog {
 
         map.forEach((key, value) -> {
             cleanSentencesKey.append(key + "" + value);
-//                cleanSentencesValue.append(value + " ");
         });
         return new Tuple2<>(cleanSentencesKey.toString(), "");
+    }
+
+    /**
+     *
+     * @param key
+     * @return
+     */
+    private static int extractLifeCount(String key) {
+        Pattern pattern = Pattern.compile("\\b(LIFE) ([0-9]+)\\b");
+        return countMatches(pattern, key);
+    }
+
+    /**
+     * Counts the number of pattern matches on a particular string
+     * @param pattern
+     * @param str
+     * @return
+     */
+    static int countMatches(Pattern pattern, String str) {
+        int matches = 0;
+        Matcher matcher = pattern.matcher(str);
+        while (matcher.find())
+            matches++;
+        return matches;
     }
 }
