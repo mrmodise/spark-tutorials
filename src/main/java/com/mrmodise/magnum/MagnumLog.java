@@ -1,11 +1,19 @@
 package com.mrmodise.magnum;
 
+import com.google.common.base.Splitter;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import scala.Tuple2;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,7 +26,7 @@ public class MagnumLog {
 
         // Read log file into a data-set row
         Dataset<Row> results = spark.read().option("header", "false")
-                .csv("magnum/MAG_TRACE_NOV07.CSV"); // replace with
+                .csv("test-data/MAG_TRACE_NOV07.CSV"); // replace with
 
         // Retrieve last column with required data
         List<String> dr = results
@@ -29,9 +37,9 @@ public class MagnumLog {
         // Preparing
         StringBuilder magnumLog = new StringBuilder();
         Pattern p = Pattern.compile("<MAGNUM.LOG>(.+?)</MAGNUM.LOG>");
-        dr.forEach(str -> {
-            magnumLog.append(str + ";");
-        });
+
+        dr.forEach(str -> magnumLog.append(str + ";"));
+
         Matcher m = p.matcher(magnumLog.toString());
         // Count any matches to the regex above
         int finalCount = countMatches(p, magnumLog.toString());
@@ -45,23 +53,26 @@ public class MagnumLog {
             count++;
         }
 
-        list.stream().forEach(System.out::println);
+//        list.stream().forEach(System.out::println);
 
-//        JavaSparkContext sc = new JavaSparkContext(spark.sparkContext());
+        // Create spark contents from Spark session. Needed to convert list to JavaPairRDD
+        JavaSparkContext sc = new JavaSparkContext(spark.sparkContext());
 
-//        JavaPairRDD<Integer, String> javaPairRDD = sc.parallelizePairs(list);
+        // Convert list into JavaRDD
+        JavaRDD<String> fromListRDD = sc.parallelize(list);
 
-//        collect.stream().filter(line -> line.contains("POLICY")).forEach(System.out::println);
+        JavaPairRDD<String, String> pairedFromRDD = fromListRDD
+                .mapToPair(getProcessData());
 
+        pairedFromRDD.foreach(data -> System.out.println(data._1() + " " + data._2()));
+    }
 
-       /* Dataset<Row> dataset = spark.createDataset(collect, Encoders.STRING()).toDF();
-        dataset.printSchema();
-        dataset.show();
-
-        Dataset<Row> row = dataset.selectExpr("split(value, '\\b\\w+\\s\\d{1}\\b')[0] as life", "split(value, '\\b\\w+\\s\\d{1}\\b')[1] policy");
-        row.printSchema();
-        row.show();*/
-
+    /**
+     *
+     * @return
+     */
+    private static PairFunction<String, String, String> getProcessData() {
+        return (PairFunction<String, String, String>) MagnumLog::extractInformation;
     }
 
     /**
@@ -76,5 +87,36 @@ public class MagnumLog {
         while (matcher.find())
             matches++;
         return matches;
+    }
+
+    /**
+     *
+     * @param s
+     * @return
+     */
+    private static Tuple2<String, String> extractInformation(String s) {
+
+        System.out.println(">>>><<<<<" + s);
+        StringBuilder cleanSentencesKey = new StringBuilder();
+        StringBuilder cleanSentencesValue = new StringBuilder();
+
+        String sentences = s
+                .replaceAll("null", "") // we don't need nulls
+                .replaceAll(";;", "") // we only need a single occurence not double
+                .replaceAll("(\\d+)\\:(\\d+)", "00"); // we do not need this for now
+
+        // split on colon then retrieve a key value map from the split on the hash (#)
+        // exclude whitespaces
+        Map<String, String> map = Splitter.on(":")
+                .omitEmptyStrings()
+                .trimResults()
+                .withKeyValueSeparator("#")
+                .split(sentences);
+
+        map.forEach((key, value) -> {
+            cleanSentencesKey.append(key + "" + value);
+//                cleanSentencesValue.append(value + " ");
+        });
+        return new Tuple2<>(cleanSentencesKey.toString(), "");
     }
 }

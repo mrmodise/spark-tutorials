@@ -41,7 +41,7 @@ public class SimpleMagnum {
     private static PairFunction<String, String, String> getLifeAndPolicy() {
         return (String s) -> {
 
-            StringBuilder cleanSentencesKey = new StringBuilder();
+            /* StringBuilder cleanSentencesKey = new StringBuilder();
             StringBuilder cleanSentencesValue = new StringBuilder();
 
             String sentences = s
@@ -62,8 +62,8 @@ public class SimpleMagnum {
 //                cleanSentencesValue.append(value + " ");
             });
 
-//            System.out.println(cleanSentencesKey.toString());
-            return new Tuple2<>(cleanSentencesKey.toString(), "");
+//            System.out.println(cleanSentencesKey.toString());*/
+            return new Tuple2<>("", "");
         };
     }
 }
