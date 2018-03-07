@@ -2,10 +2,15 @@
 A load of Apache Spark Tutorials in Java 8 utilizing Scala and Spark libraries.
 
 ### Requirements
-* This repository assumes you already have IntelliJ IDEA installed. If not, visit https://www.jetbrains.com/idea/download/ and follow installation instructions.
+Upon pushing this repository, I have made several assumptions:
+
+* You already have IntelliJ IDEA installed. If not, visit https://www.jetbrains.com/idea/download/ and follow installation instructions.
+* You have prior knowledge of Java 8 (Streams and Lambdas)
 
 ### Execute
 * Import the project into IntelliJ and execute whatever tutorial interests you. For simplicity, tutorials are separated into packages.
+
+### The Problem
 
 
 ### License
