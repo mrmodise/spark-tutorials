@@ -8,10 +8,8 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.*;
 import scala.Tuple2;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -123,6 +121,7 @@ public class MagnumLog {
      * @return
      */
     private static Map<Integer, Map<String, String>> extractKeyValuesLog(String block) {
+//        System.out.println(block);
         // Find all STATEMENT patterns in the block
         Matcher matcher = Pattern.compile(STATEMENT).matcher(block);
         // Find all POLICY patterns in the block
@@ -132,7 +131,7 @@ public class MagnumLog {
         // Placeholder to load all statements that match the policy pattern
         StringBuilder policyMatches = new StringBuilder();
         // Extract matches into the placeholders
-        while (matcher.find()) matches.append(matcher.group(0) + " ");
+        while (matcher.find()) matches.append(matcher.group(0) + "*");
         while (policies.find()) policyMatches.append(policies.group(0) + "_");
 
         // Put the policy numbers in a map
@@ -142,13 +141,13 @@ public class MagnumLog {
                 .split(policyMatches.toString());
 
         // Put matched statements in a key value map
-        Map<String, String> map = Splitter.on(" ")
+        Map<String, String> map = Splitter.on("*")
                 .omitEmptyStrings()
                 .trimResults()
                 .withKeyValueSeparator("=")
                 .split(matches.toString());
         // Build policy-key-value relationship
-        Map<Integer, Map<String, String>> finalMap = new LinkedHashMap<>();
+        Map<Integer, Map<String, String>> finalMap = new HashMap<>();
         // Retrieve the policy number only
         finalMap.put(Integer.parseInt(mapNumbers.get("POLICY")), map);
         return finalMap;
