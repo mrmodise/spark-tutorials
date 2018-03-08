@@ -22,7 +22,6 @@
 .idea
 .DS_Store
 magnum/
-test-data/MAG_TRACE_NOV07.CSV
 # Ignore Gradle GUI config
 gradle-app.setting
 
