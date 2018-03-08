@@ -5,7 +5,7 @@ public class Utils {
 
     }
 
-    public static final String STATEMENT = "\\b(\\w+=\\w+)\\b";
+    public static final String STATEMENT = "\\b(\\w+=\\w+\\s\\d|\\w+=\\w+)\\b";
     public static final String POLICY = "(POLICY) ([0-9]+)";
     public static final String COMMA_DELIMITER = ",(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
 }
