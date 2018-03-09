@@ -14,7 +14,7 @@ public class AirportsInUSA {
 
         JavaSparkContext sc = new JavaSparkContext(conf);
 
-        JavaRDD<String> airports = sc.textFile("src/main/resources/in/airports.text");
+        JavaRDD<String> airports = sc.textFile("test-data/airports.text");
 
         JavaRDD<String> airportsInUSA = airports
                 .filter(line -> line
@@ -26,6 +26,6 @@ public class AirportsInUSA {
             return StringUtils.join(",", new String[]{splits[1], splits[2]});
         });
 
-        airportsNameAndCityNames.saveAsTextFile("src/main/resources/out/airports_in_usa.text");
+        airportsNameAndCityNames.coalesce(1).saveAsTextFile("src/main/resources/out/airports_in_usa.text");
     }
 }

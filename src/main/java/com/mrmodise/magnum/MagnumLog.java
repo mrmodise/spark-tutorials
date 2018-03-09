@@ -1,6 +1,7 @@
 package com.mrmodise.magnum;
 
 import com.google.common.base.Splitter;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -9,10 +10,11 @@ import org.apache.spark.sql.*;
 import scala.Tuple2;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.mrmodise.Utils.LIFE;
 import static com.mrmodise.Utils.POLICY;
 import static com.mrmodise.Utils.STATEMENT;
 
@@ -25,9 +27,10 @@ public class MagnumLog {
 
         // Read log file into a data-set row
         Dataset<Row> results = spark.read().option("header", "false")
-                .csv("test-data/MAG_TRACE_NOV07.CSV"); // replace with
+                .csv("test-data/test-data/test_data_magnum.CSV"); // replace with
 
         // Retrieve last column with required data
+        @Ignore()
         List<String> dr = results
                 .select("_c2")
                 .as(Encoders.STRING())
@@ -102,7 +105,12 @@ public class MagnumLog {
                 .splitToList(sentences);
 
         list.stream().filter(x -> x.contains("POLICY"))
-                .map(MagnumLog::extractKeyValuesLog)
+                .filter(x -> x.contains("LIFE"))
+                .map(block -> extractKeyValuesLog(block, LIFE))
+                .collect(Collectors.toList()).forEach(System.out::println);
+
+        list.stream().filter(x -> x.contains("POLICY"))
+                .map(block -> extractKeyValuesLog(block, POLICY))
                 .collect(Collectors.toList()).forEach(System.out::println);
 
 //        System.out.println(cleanSentencesKey.toString());
@@ -120,12 +128,12 @@ public class MagnumLog {
      * @param block
      * @return
      */
-    private static Map<Integer, Map<String, String>> extractKeyValuesLog(String block) {
+    private static Map<Integer, Map<String, String>> extractKeyValuesLog(String block, String pattern) {
 //        System.out.println(block);
         // Find all STATEMENT patterns in the block
         Matcher matcher = Pattern.compile(STATEMENT).matcher(block);
         // Find all POLICY patterns in the block
-        Matcher policies = Pattern.compile(POLICY).matcher(block);
+        Matcher policies = Pattern.compile(pattern).matcher(block);
         // Placeholder to load all statements that match the pattern
         StringBuilder matches = new StringBuilder();
         // Placeholder to load all statements that match the policy pattern
@@ -140,17 +148,21 @@ public class MagnumLog {
                 .withKeyValueSeparator(" ")
                 .split(policyMatches.toString());
 
+        System.out.println(mapNumbers.entrySet().stream().toArray().length + " mapNumbers");
+
         // Put matched statements in a key value map
         Map<String, String> map = Splitter.on("*")
                 .omitEmptyStrings()
                 .trimResults()
                 .withKeyValueSeparator("=")
                 .split(matches.toString());
+
+        System.out.println(map.entrySet().stream().toArray().length + " map");
         // Build policy-key-value relationship
         Map<Integer, Map<String, String>> finalMap = new HashMap<>();
         // Retrieve the policy number only
-        finalMap.put(Integer.parseInt(mapNumbers.get("POLICY")), map);
-        return finalMap;
+        //finalMap.put(Integer.parseInt(mapNumbers.get("POLICY")), map);
+        return null;
     }
 
     /**
