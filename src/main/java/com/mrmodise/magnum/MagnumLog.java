@@ -27,7 +27,7 @@ public class MagnumLog {
 
         // Read log file into a data-set row
         Dataset<Row> results = spark.read().option("header", "false")
-                .csv("test-data/test-data/test_data_magnum.CSV"); // replace with
+                .csv("test-data/test_data_magnum.CSV"); // replace with
 
         // Retrieve last column with required data
         @Ignore()
@@ -104,21 +104,18 @@ public class MagnumLog {
                 .trimResults()
                 .splitToList(sentences);
 
-        list.stream().filter(x -> x.contains("POLICY"))
+        List<Map<Integer, Map<String, String>>> lifeList = list.stream()
                 .filter(x -> x.contains("LIFE"))
                 .map(block -> extractKeyValuesLog(block, LIFE))
-                .collect(Collectors.toList()).forEach(System.out::println);
+                .collect(Collectors.toList());
 
-        list.stream().filter(x -> x.contains("POLICY"))
+        lifeList.forEach(System.out::println);
+
+        List<Map<Integer, Map<String, String>>> policyList = list.stream().filter(x -> x.contains("POLICY"))
                 .map(block -> extractKeyValuesLog(block, POLICY))
-                .collect(Collectors.toList()).forEach(System.out::println);
+                .collect(Collectors.toList());
 
-//        System.out.println(cleanSentencesKey.toString());
-
-       /* map.forEach((key, value) -> {
-            cleanSentencesKey.append(key + " " + value);
-            cleanSentencesValue.append(value + " ");
-        });*/
+        policyList.forEach(System.out::println);
 
         return new Tuple2<>("", "");
     }
@@ -129,7 +126,6 @@ public class MagnumLog {
      * @return
      */
     private static Map<Integer, Map<String, String>> extractKeyValuesLog(String block, String pattern) {
-//        System.out.println(block);
         // Find all STATEMENT patterns in the block
         Matcher matcher = Pattern.compile(STATEMENT).matcher(block);
         // Find all POLICY patterns in the block
@@ -148,7 +144,6 @@ public class MagnumLog {
                 .withKeyValueSeparator(" ")
                 .split(policyMatches.toString());
 
-        System.out.println(mapNumbers.entrySet().stream().toArray().length + " mapNumbers");
 
         // Put matched statements in a key value map
         Map<String, String> map = Splitter.on("*")
@@ -157,12 +152,12 @@ public class MagnumLog {
                 .withKeyValueSeparator("=")
                 .split(matches.toString());
 
-        System.out.println(map.entrySet().stream().toArray().length + " map");
         // Build policy-key-value relationship
         Map<Integer, Map<String, String>> finalMap = new HashMap<>();
         // Retrieve the policy number only
-        //finalMap.put(Integer.parseInt(mapNumbers.get("POLICY")), map);
-        return null;
+        finalMap.put(Integer.parseInt(mapNumbers.getOrDefault("POLICY","0")), map);
+
+        return finalMap;
     }
 
     /**
